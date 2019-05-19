@@ -1,5 +1,5 @@
 {
-  "name": "storagebus",
+  "name": "storagecoach",
   "version": "0.0.1",
   "description": "Storage abstraction layer.",
   "main": "./lib",
@@ -22,13 +22,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fox1t/storagebus"
+    "url": "git+https://github.com/fox1t/storagecoach"
   },
   "keywords": [],
   "bugs": {
-    "url": "https://github.com/fox1t/storagebus/issues"
+    "url": "https://github.com/fox1t/storagecoach/issues"
   },
-  "homepage": "https://github.com/fox1t/storagebus#readme",
+  "homepage": "https://github.com/fox1t/storagecoach#readme",
   "devDependencies": {
     "@types/convict": "^4.2.1",
     "@types/mongodb": "^3.1.27",

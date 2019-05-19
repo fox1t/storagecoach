@@ -13,7 +13,7 @@ class MongoDb implements Db {
   dbName: string
   collectionName: string
 
-  constructor(mongoConnection: string, mongoCollection: string = 'storagebus') {
+  constructor(mongoConnection: string, mongoCollection: string = 'storagecoach') {
     this.client = MongoClient.connect(mongoConnection, { useNewUrlParser: true })
     this.collectionName = mongoCollection
     this.dbName = parse(mongoConnection).database
@@ -30,7 +30,7 @@ class MongoDb implements Db {
   // Set a timeout on id
   async expire(id: string, expireSeconds: number): Promise<boolean> {
     // NOTE: order to make ttl work on mongodb we need to add an index
-    // call db.collection(storagebusFiles).createIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
+    // call db.collection(storagecoachFiles).createIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
     const expireMS = expireSeconds * 1000
     const client = await this.client
     const collection = client.db(this.dbName).collection(this.collectionName)

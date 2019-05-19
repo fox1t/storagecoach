@@ -10,9 +10,9 @@
 //   databaseHost: 'localhost', // mock-redis
 //   expireSeconds: 20,
 //   storageType: 'az',
-//   storageUser: 'storagebustest',
+//   storageUser: 'storagecoachtest',
 //   storageKey: '',
-//   storageUri: 'storagebus',
+//   storageUri: 'storagecoach',
 // }
 
 // test('Redis Azure Blob container', function(t) {

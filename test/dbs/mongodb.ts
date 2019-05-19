@@ -11,7 +11,7 @@
 //   env: 'development',
 //   databaseType: 'mongodb',
 //   databaseHost: '',
-//   databaseCollection: 'storagebusFiles',
+//   databaseCollection: 'storagecoachFiles',
 //   expireSeconds: 20,
 //   storageType: 'fs',
 //   storageUri: `${tmpdir()}${sep}send-${randomBytes(4).toString('hex')}`,
