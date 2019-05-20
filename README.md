@@ -11,3 +11,5 @@
 [![built with typescript-lib-starter](https://img.shields.io/badge/built%20with-typescript--lib--starter%20-blue.svg)](https://github.com/fox1t/typescript-lib-starter)
 
 </div>
+
+### "Storage bus, but for longer trips!"
