@@ -8,27 +8,31 @@ interface MongoDbConfig {
   mongoCollection?: string
 }
 
-class MongoDb implements Db {
+class MongoDb<T = MetadataObject> implements Db<T> {
   client: Promise<MongoClient>
   dbName: string
   collectionName: string
 
-  constructor(mongoConnection: string, mongoCollection: string = 'storagecoach') {
-    this.client = MongoClient.connect(mongoConnection, { useNewUrlParser: true })
+  constructor(mongoConnection: string | MongoClient, mongoCollection: string = 'storagecoach') {
+    if (typeof mongoConnection === 'string') {
+      this.client = MongoClient.connect(mongoConnection, { useNewUrlParser: true })
+    } else {
+      this.client = Promise.resolve(mongoConnection)
+    }
     this.collectionName = mongoCollection
     this.dbName = parse(mongoConnection).database
   }
 
   // mimic https://redis.io/commands/ttl
   async ttl(id: string): Promise<number> {
-    const expireTime = await this.get(id, 'expireAt')
+    const expireTime = (await this.get(id, 'expireAt')) as number
     if (expireTime === null) {
       throw new Error(`Can't find expire time for the specified id.`)
     }
     return Math.floor((expireTime - Date.now()) / 1000)
   }
   // Set a timeout on id
-  async expire(id: string, expireSeconds: number): Promise<boolean> {
+  async expire(id: string, expireSeconds: number): Promise<void> {
     // NOTE: order to make ttl work on mongodb we need to add an index
     // call db.collection(storagecoachFiles).createIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
     const expireMS = expireSeconds * 1000
@@ -40,13 +44,11 @@ class MongoDb implements Db {
       { id },
       { $set: { expireAt: new Date(Date.now() + expireMS) } },
     )
-
-    return true
   }
 
-  async get(id: string, property?: string): Promise<any> {
+  async get(id: string, property?: string): Promise<T | string | number | null> {
     const client = await this.client
-    const obj: MetadataObject | null = await client
+    const obj: T | null = await client
       .db(this.dbName)
       .collection(this.collectionName)
       .findOne({ id })
@@ -60,14 +62,20 @@ class MongoDb implements Db {
     return null
   }
 
-  async set(id: string, key: string | object, value?: string): Promise<boolean> {
-    const objectToSet = value ? { [key as string]: value } : (key as object)
+  async set(
+    id: string,
+    key: string | { [key: string]: string | number },
+    value?: string,
+  ): Promise<void> {
+    const objectToSet = value
+      ? { [key as string]: value }
+      : (key as { [key: string]: string | number })
+
     const client = await this.client
     await client
       .db(this.dbName)
       .collection(this.collectionName)
       .findOneAndUpdate({ id }, { $set: { id, ...objectToSet } }, { upsert: true })
-    return true
   }
 
   async del(id: string): Promise<void> {
@@ -83,7 +91,7 @@ class MongoDb implements Db {
   }
 
   async close() {
-    return (await this.client).close()
+    return (await this.client).close(true)
   }
 }
 

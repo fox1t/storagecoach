@@ -66,6 +66,7 @@ class Storage {
     return this.storage.getStream(filePath)
   }
 
+  // this methods sets the prefix for the specified id
   async set(id: string, file: Readable, meta?: any, expireSeconds: number = this.expireSeconds) {
     const prefix = getPrefix(expireSeconds)
     const filePath = `${prefix}-${id}`

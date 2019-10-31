@@ -9,15 +9,15 @@ interface RedisConfig {
   env?: string
 }
 
-export interface PromisifiedRedis extends RedisClient {
+export interface PromisifiedRedis<T> extends RedisClient {
   ttlAsync(key: string): Promise<number>
-  hgetallAsync(key: string): Promise<MetadataObject>
+  hgetallAsync(key: string): Promise<T>
   hgetAsync(key: string, field: string): Promise<string>
   pingAsync(): Promise<string>
 }
 
-class Redis implements Db {
-  client: PromisifiedRedis
+class Redis<T = MetadataObject> implements Db<T> {
+  client: PromisifiedRedis<T>
 
   constructor(host: string, connectionTimeout: number, env?: string) {
     const redisLib = env === 'development' && host === 'localhost' ? 'redis-mock' : 'redis'
@@ -42,32 +42,39 @@ class Redis implements Db {
     return this.client.ttlAsync(id)
   }
   // Set a timeout on id
-  async expire(id: string, expireSeconds: number): Promise<boolean> {
-    return this.client.expire(id, expireSeconds)
+  async expire(id: string, expireSeconds: number): Promise<void> {
+    this.client.expire(id, expireSeconds)
   }
   // Returns full metadata object Returns single property of metadata object (hget and hgetall)
-  async get(id: string, property?: string): Promise<MetadataObject | string | null> {
+  async get(id: string, property?: string): Promise<T | string | number | null> {
     if (!property) {
       return this.client.hgetallAsync(id)
     }
     return this.client.hgetAsync(id, property)
   }
   // Rezs single property or sub-property object (hset and hmset)
-  async set(id: string, key: string | object, value?: string): Promise<boolean> {
+  async set(
+    id: string,
+    key: string | { [key: string]: string | number },
+    value?: string,
+  ): Promise<void> {
     if (!value) {
-      return (this.client.hmset as any)(id, key)
+      this.client.hmset(id, key)
+    } else {
+      this.client.hset(id, key as string, value)
     }
-
-    return this.client.hset(id, key as string, value)
   }
   // Deletes metadata object
   async del(id: string): Promise<void> {
     this.client.del(id)
   }
-  async ping(): Promise<string> {
-    return this.client.pingAsync()
+  async ping(): Promise<boolean> {
+    const pong = await this.client.pingAsync()
+    return pong ? true : false
   }
-  async close() {}
+  async close() {
+    this.client.quit()
+  }
 }
 
 export default function createRedisClient({
