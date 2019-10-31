@@ -5,23 +5,11 @@ import S3Storage from './storage/s3'
 import AZBlobStorage from './storage/azure-blob'
 import { Readable } from 'stream'
 import createDb, { Db } from './db'
+import { CreateStorage } from './storage'
+import StorageConfig from './config'
 
 function getPrefix(seconds: number) {
   return Math.max(Math.floor(seconds / 86400), 1)
-}
-
-export interface StorageConfig {
-  env: string
-  expireSeconds?: number
-
-  storageType: 's3' | 'gcs' | 'az' | 'fs'
-  storageUri: string
-  storageUser?: string
-  storageKey?: string
-
-  databaseType?: 'redis' | 'mongodb'
-  databaseHost: string
-  databaseCollection?: string
 }
 
 class Storage {
@@ -33,18 +21,20 @@ class Storage {
     if (!config.storageUri) {
       throw new Error(`"Storage URI" property is mandatory.`)
     }
-    let StorageDriver
     if (config.storageType === 's3') {
-      StorageDriver = require('./storage/s3').default as S3Storage
+      this.storage = CreateStorage(S3Storage, config.storageUri) as S3Storage
     } else if (config.storageType === 'gcs') {
-      StorageDriver = require('./storage/gcs').default as GCSStorage
+      this.storage = CreateStorage(GCSStorage, config.storageUri) as GCSStorage
     } else if (config.storageType === 'az') {
-      StorageDriver = require('./storage/azure-blob').default as AZBlobStorage
+      this.storage = CreateStorage(
+        AZBlobStorage,
+        config.storageUri,
+        config.storageUser,
+        config.storageKey,
+      ) as AZBlobStorage
     } else {
-      StorageDriver = require('./storage/fs').default as FSStorage
+      this.storage = CreateStorage(FSStorage, config.storageUri) as FSStorage
     }
-
-    this.storage = new StorageDriver(config.storageUri, config.storageUser, config.storageKey)
 
     this.db = createDb({
       databaseType: config.databaseType,
@@ -115,4 +105,5 @@ class Storage {
   }
 }
 
-export default (config: StorageConfig) => new Storage(config)
+const StorageFactory = (config: StorageConfig) => new Storage(config)
+export = StorageFactory

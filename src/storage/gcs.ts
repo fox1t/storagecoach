@@ -1,9 +1,10 @@
-import { Storage, Bucket } from '@google-cloud/storage'
-import { StorageDriver } from './storage-driver'
+import { Storage as GoogleStorage, Bucket } from '@google-cloud/storage'
+import { Storage } from './'
 import { Readable } from 'stream'
-const storage = new Storage()
 
-export default class GCSStorage implements StorageDriver {
+const storage = new GoogleStorage()
+
+export default class GCSStorage implements Storage {
   bucket: Bucket
 
   constructor(gcsBucket: string) {

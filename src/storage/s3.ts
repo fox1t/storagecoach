@@ -1,10 +1,10 @@
 import AWS from 'aws-sdk'
-import { StorageDriver } from './storage-driver'
+import { Storage } from './'
 import { Readable } from 'stream'
 
 const s3 = new AWS.S3()
 
-export default class S3Storage implements StorageDriver {
+export default class S3Storage implements Storage {
   bucket: string
 
   constructor(s3Bucket: string) {

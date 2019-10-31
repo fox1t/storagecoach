@@ -8,7 +8,7 @@ import {
   Aborter,
   Pipeline,
 } from '@azure/storage-blob'
-import { StorageDriver } from './storage-driver'
+import { Storage } from './'
 import { Readable } from 'stream'
 
 const ONE_MINUTE = 60 * 1000
@@ -16,7 +16,7 @@ const ONE_MEGABYTE = 1024 * 1024
 const FOUR_MEGABYTES = 4 * ONE_MEGABYTE
 
 // reference https://docs.microsoft.com/en-us/javascript/api/@azure/storage-blob/?view=azure-node-preview
-export default class AZBlobStorage implements StorageDriver {
+export default class AZBlobStorage implements Storage {
   credentials: SharedKeyCredential
   pipeline: Pipeline
   serviceURL: ServiceURL

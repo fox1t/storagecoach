@@ -2,12 +2,12 @@ import fs, { ReadStream } from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import mkdirp from 'mkdirp'
-import { StorageDriver } from './storage-driver'
+import { Storage } from './'
 import { Readable } from 'stream'
 
 const stat = promisify(fs.stat)
 
-export default class FSStorage implements StorageDriver {
+export default class FSStorage implements Storage {
   dir: string
 
   constructor(localDir: string) {
