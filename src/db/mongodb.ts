@@ -1,14 +1,14 @@
 import { parse } from 'mongodb-uri'
 import { MongoClient } from 'mongodb'
 import { Db } from '.'
-import { MetadataObject } from '../lib/metadata'
+import { Metadata } from './metadata'
 
 interface MongoDbConfig {
   mongoConnection: string
   mongoCollection?: string
 }
 
-class MongoDb<T = MetadataObject> implements Db<T> {
+class MongoDb<T = Metadata> implements Db<T> {
   client: Promise<MongoClient>
   dbName: string
   collectionName: string
@@ -46,9 +46,12 @@ class MongoDb<T = MetadataObject> implements Db<T> {
     )
   }
 
-  async get(id: string, property?: string): Promise<T | string | number | null> {
+  async get<M = T | string | number>(
+    id: string,
+    property?: string,
+  ): Promise<(M & { prefix: string }) | null> {
     const client = await this.client
-    const obj: T | null = await client
+    const obj: (M & { prefix: string }) | null = await client
       .db(this.dbName)
       .collection(this.collectionName)
       .findOne({ id })
@@ -95,6 +98,6 @@ class MongoDb<T = MetadataObject> implements Db<T> {
   }
 }
 
-export default function createMongoDbClient(config: MongoDbConfig) {
-  return new MongoDb(config.mongoConnection, config.mongoCollection)
+export default function createMongoDbClient<T = Metadata>(config: MongoDbConfig) {
+  return new MongoDb<T>(config.mongoConnection, config.mongoCollection)
 }

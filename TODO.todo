@@ -1,0 +1,16 @@
+☐ add support for CouchDB
+☐ get file list by owner
+  ☐ use userId as prefix in paths
+  ☐ use userId as field in files metadata
+☐ ensure unique name on id
+  ☐ check if there is a file with same name already in path
+  ☐ use filename as id in the db
+  ☐ make an optional flag to add uniquess to names
+✔ custom metadata object @done (11/2/2019, 12:19:13 PM)
+  ✔ make MetadataObject generic type and default to the povided one only if custom is missing @done (11/2/2019, 11:04:59 AM)
+☐ plugin based storage classes
+  ☐ don't import every provider, but just the selected one
+  ☐ add storageClass parameter to storage constructor
+☐ make the database for metadata optional
+  ☐ if no db is configured, storageCoach must work only with filestorage
+

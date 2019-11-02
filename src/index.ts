@@ -1,4 +1,4 @@
-import Metadata, { MetadataObject } from './lib/metadata'
+import Metadata from './db/metadata'
 import FSStorage from './storage/fs'
 import GCSStorage from './storage/gcs'
 import S3Storage from './storage/s3'
@@ -12,10 +12,10 @@ function getPrefix(seconds: number) {
   return Math.max(Math.floor(seconds / 86400), 1)
 }
 
-class Storage {
+class Storage<T = Metadata> {
   storage: FSStorage | GCSStorage | S3Storage | AZBlobStorage
   expireSeconds: number
-  db: Db
+  db: Db<T>
 
   constructor(config: StorageConfig) {
     if (!config.storageUri) {
@@ -67,16 +67,18 @@ class Storage {
   }
 
   // this methods sets the prefix for the specified id
-  async set(id: string, file: Readable, meta?: any, expireSeconds: number = this.expireSeconds) {
-    const prefix = getPrefix(expireSeconds)
-    const filePath = `${prefix}-${id}`
-    await this.db.set(id, 'prefix', prefix.toString())
+  async set(id: string, file: Readable, meta?: T, expireSeconds: number = this.expireSeconds) {
+    const generatedPrefix = getPrefix(expireSeconds)
+    const filePath = `${generatedPrefix}-${id}`
+    await this.db.set(id, 'prefix', generatedPrefix.toString())
     if (!file.readable) {
       throw new Error('Passed stream is not readable.')
     }
     await this.storage.set(filePath, file)
     if (meta) {
-      await this.db.set(id, meta)
+      const { expireAt, prefix, ...realmeta } = meta as any
+
+      await this.db.set(id, realmeta as any)
     }
     await this.db.expire(id, expireSeconds)
   }
@@ -97,7 +99,7 @@ class Storage {
   }
 
   async metadata(id: string) {
-    const result = (await this.db.get(id)) as MetadataObject
+    const result = await this.db.get<Metadata>(id)
     return result && new Metadata(result)
   }
 
@@ -106,5 +108,5 @@ class Storage {
   }
 }
 
-const StorageFactory = (config: StorageConfig) => new Storage(config)
+const StorageFactory = <T = Metadata>(config: StorageConfig) => new Storage<T>(config)
 export = StorageFactory

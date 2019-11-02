@@ -14,7 +14,7 @@
 //   databaseCollection: 'storagecoachFiles',
 //   expireSeconds: 20,
 //   storageType: 'fs',
-//   storageUri: `${tmpdir()}${sep}send-${randomBytes(4).toString('hex')}`,
+//   storageUri: `${tmpdir()}${sep}storagecoach-${randomBytes(4).toString('hex')}`,
 // }
 
 // test('MongoDB local storage.', function(t) {

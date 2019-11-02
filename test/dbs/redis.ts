@@ -4,7 +4,6 @@ import { tmpdir } from 'os'
 import { join, sep } from 'path'
 import Storage from '../../src'
 import StorageConfig from '../../src/config'
-import { MetadataObject } from '../../src/lib/metadata'
 import { Readable } from 'stream'
 import { randomBytes } from 'crypto'
 
@@ -13,16 +12,16 @@ const config: StorageConfig = {
   databaseHost: 'localhost', // mock-redis
   expireSeconds: 20,
   storageType: 'fs',
-  storageUri: `${tmpdir()}${sep}send-${randomBytes(4).toString('hex')}`,
+  storageUri: `${tmpdir()}${sep}storagecoach-${randomBytes(4).toString('hex')}`,
 }
 
 test('Redis local storage', function(t) {
-  const storage = Storage(config)
+  const storage = Storage<{ foo: string }>(config)
 
   t.test('ttl', function(tc) {
     tc.test('returns milliseconds remaining', async function(tap) {
       tap.plan(1)
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       const time = 40
       await storage.set('x', fileStream, { foo: 'bar' }, time)
       const ms = await storage.ttl('x')
@@ -35,7 +34,7 @@ test('Redis local storage', function(t) {
     tc.test('returns the file size', async function(tap) {
       tap.plan(1)
       const len = await storage.length('x')
-      tap.equal(len, 1545)
+      tap.equal(len, 435448)
     })
     tc.end()
   })
@@ -52,7 +51,7 @@ test('Redis local storage', function(t) {
     tc.test('sets expiration to expire time', async function(tap) {
       tap.plan(1)
       const seconds = 100
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('x', fileStream, { foo: 'bar' }, seconds)
       const s = await storage.db.ttl('x')
       await storage.del('x')
@@ -61,19 +60,19 @@ test('Redis local storage', function(t) {
 
     tc.test('adds right prefix based on expire time', async function(tap) {
       tap.plan(3)
-      let fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      let fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('x', fileStream, { foo: 'bar' }, 300)
       const pathX = await storage.getPrefixedId('x')
       tap.equal(pathX, '1-x')
       await storage.del('x')
 
-      fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('y', fileStream, { foo: 'bar' }, 86400)
       const pathY = await storage.getPrefixedId('y')
       tap.equal(pathY, '1-y')
       await storage.del('y')
 
-      fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('z', fileStream, { foo: 'bar' }, 86400 * 7)
       const pathZ = await storage.getPrefixedId('z')
       tap.equal(pathZ, '7-z')
@@ -82,11 +81,11 @@ test('Redis local storage', function(t) {
 
     tc.test('sets metadata', async function(tap) {
       tap.plan(1)
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       const m = { foo: 'bar' }
       await storage.set('x', fileStream, m)
-      const meta = (await storage.db.get('x')) as MetadataObject
-      delete meta.prefix
+      const meta = await storage.db.get('x')
+      delete meta!.prefix
       await storage.del('x')
       tap.deepEqual(meta, m)
     })
@@ -96,7 +95,7 @@ test('Redis local storage', function(t) {
   t.test('setField', function(tc) {
     tc.test('works', async function(tap) {
       tap.plan(1)
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('x', fileStream)
       storage.setField('x', 'y', 'z')
       const z = await storage.db.get('x', 'y')
@@ -109,7 +108,7 @@ test('Redis local storage', function(t) {
   t.test('del', function(tc) {
     tc.test('works', async function(tap) {
       tap.plan(1)
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/storagecoach.png'))
       await storage.set('x', fileStream, { foo: 'bar' })
       await storage.del('x')
       const meta = await storage.metadata('x')
@@ -127,22 +126,38 @@ test('Redis local storage', function(t) {
   })
 
   t.test('metadata', function(tc) {
+    const storage2 = Storage(config)
     tc.test('returns all metadata fields', async function(tap) {
       tap.plan(1)
-      const fileStream = createReadStream(join(__dirname, '../files/logo.png'))
+      const fileStream = createReadStream(join(__dirname, '../files/file.txt'))
       const m = {
-        pwd: true,
         dl: 1,
         dlimit: 1,
-        auth: 'foo',
         metadata: 'bar',
-        nonce: 'baz',
         owner: 'bmo',
+        expireAt: 0,
+        prefix: '1',
       }
-      await storage.set('x', fileStream, m)
-      const meta = await storage.metadata('x')
-      await storage.del('x')
+      await storage2.set('xy', fileStream, m)
+      const meta = await storage2.metadata('xy')
+      console.log(meta)
+      console.log(m)
       tap.deepEqual(meta, m)
+      await storage2.del('xy')
+    })
+    tc.test('adds prefix and expireAt', async function(tap) {
+      tap.plan(1)
+      const fileStream = createReadStream(join(__dirname, '../files/file2.txt'))
+      const m = {
+        dl: 1,
+        dlimit: 1,
+        metadata: 'bar2',
+        owner: 'bmo2',
+      }
+      await storage2.set('x', fileStream, m)
+      const meta = await storage2.metadata('x')
+      await storage2.del('x')
+      tap.deepEqual(meta, { ...m, prefix: '1', expireAt: 0 })
     })
     tc.end()
   })

@@ -1,7 +1,8 @@
 import { promisify } from 'util'
 import { RedisClient } from 'redis'
+
 import { Db } from '.'
-import { MetadataObject } from '../lib/metadata'
+import { Metadata } from './metadata'
 
 interface RedisConfig {
   host: string
@@ -16,7 +17,7 @@ export interface PromisifiedRedis<T> extends RedisClient {
   pingAsync(): Promise<string>
 }
 
-class Redis<T = MetadataObject> implements Db<T> {
+class Redis<T = Metadata> implements Db<T> {
   client: PromisifiedRedis<T>
 
   constructor(host: string, connectionTimeout: number, env?: string) {
@@ -46,13 +47,16 @@ class Redis<T = MetadataObject> implements Db<T> {
     this.client.expire(id, expireSeconds)
   }
   // Returns full metadata object Returns single property of metadata object (hget and hgetall)
-  async get(id: string, property?: string): Promise<T | string | number | null> {
+  async get<M = T | string | number>(
+    id: string,
+    property?: string,
+  ): Promise<(M & { prefix: string }) | null> {
     if (!property) {
-      return this.client.hgetallAsync(id)
+      return this.client.hgetallAsync(id) as any
     }
-    return this.client.hgetAsync(id, property)
+    return this.client.hgetAsync(id, property) as any
   }
-  // Rezs single property or sub-property object (hset and hmset)
+  // Sets single property or sub-property object (hset and hmset)
   async set(
     id: string,
     key: string | { [key: string]: string | number },
@@ -77,10 +81,10 @@ class Redis<T = MetadataObject> implements Db<T> {
   }
 }
 
-export default function createRedisClient({
+export default function createRedisClient<T = Metadata>({
   host,
   connectionTimeout = 10000,
   env = process.env.NODE_ENV,
 }: RedisConfig) {
-  return new Redis(host, connectionTimeout, env)
+  return new Redis<T>(host, connectionTimeout, env)
 }
