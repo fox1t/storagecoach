@@ -6,7 +6,7 @@
 
 <div align="center">
 
-[![NPM version](https://img.shields.io/npm/v/storagecoach.svg?style=flat)](https://www.npmjs.com/package/storagecoach)
+[![NPM version](https://img.shields.io/npm/v/storagecoach.svg?style=flat)](https://www.npmjs.com/package/storagecoach) [![GitHub CI](https://github.com/fox1t/storagecoach/workflows/ci/badge.svg)](https://github.com/fox1t/storagecoach/actions) 
 [![NPM downloads](https://img.shields.io/npm/dm/storagecoach.svg?style=flat)](https://www.npmjs.com/package/storagecoach)
 [![built with typescript-lib-starter](https://img.shields.io/badge/built%20with-typescript--lib--starter%20-blue.svg)](https://github.com/fox1t/typescript-lib-starter) 
 </div>
