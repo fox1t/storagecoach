@@ -140,10 +140,8 @@ test('Redis local storage', function(t) {
       }
       await storage2.set('xy', fileStream, m)
       const meta = await storage2.metadata('xy')
-      console.log(meta)
-      console.log(m)
-      tap.deepEqual(meta, m)
       await storage2.del('xy')
+      tap.deepEqual(meta, m)
     })
     tc.test('adds prefix and expireAt', async function(tap) {
       tap.plan(1)
