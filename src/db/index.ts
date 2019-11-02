@@ -15,7 +15,10 @@ export interface Db<T> {
   // Set a timeout on id
   expire(id: string, expireSeconds: number): Promise<void>
   // Returns full metadata object Returns single property of metadata object (hget and hgetall)
-  get<M = T | string | number>(id: string, property?: string): Promise<(M & {prefix: string} )| null>
+  get<M = T | string | number>(
+    id: string,
+    property?: string,
+  ): Promise<(M & { prefix: string }) | null>
   // Rets single property or sub-property object (hset and hmset)
   set(id: string, key: string | { [key: string]: string | number }, value?: string): Promise<void>
   // Deletes metadata object

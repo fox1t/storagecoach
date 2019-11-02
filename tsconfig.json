@@ -16,7 +16,8 @@
     "removeComments": true,
     "noUnusedLocals": true,
     "lib": [
-      "esnext"
+      "esnext",
+      "dom"
     ],
     "typeRoots" : ["./node_modules/@types", "./typings"]
   },

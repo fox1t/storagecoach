@@ -15,7 +15,10 @@ class MongoDb<T = Metadata> implements Db<T> {
 
   constructor(mongoConnection: string | MongoClient, mongoCollection: string = 'storagecoach') {
     if (typeof mongoConnection === 'string') {
-      this.client = MongoClient.connect(mongoConnection, { useNewUrlParser: true })
+      this.client = MongoClient.connect(mongoConnection, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
     } else {
       this.client = Promise.resolve(mongoConnection)
     }
@@ -40,10 +43,12 @@ class MongoDb<T = Metadata> implements Db<T> {
     const collection = client.db(this.dbName).collection(this.collectionName)
     await collection.createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 })
 
-    await collection.findOneAndUpdate(
-      { id },
-      { $set: { expireAt: new Date(Date.now() + expireMS) } },
-    )
+    if (expireMS) {
+      await collection.findOneAndUpdate(
+        { id },
+        { $set: { expireAt: new Date(Date.now() + expireMS) } },
+      )
+    }
   }
 
   async get<M = T | string | number>(
