@@ -15,7 +15,7 @@
     "prelint": "npm run prettier",
     "lint": "tslint --fix -c tslint.json -t stylish -p ./tsconfig.json",
     "prepublishOnly": "npm run build",
-    "test": "tap --changed test/**/*.ts",
+    "test": "tap --timeout 60 --changed test/**/*.ts",
     "test:watch": "chokidar \"src/**/*.ts\" \"test/**/*.ts\" -c \"npm run test\" --initial",
     "test:report": "npm run test | tee out.tap",
     "test:reporter": "tap-mocha-reporter xunit < out.tap > junit-testresults.xml"
@@ -35,6 +35,7 @@
     "@types/node": "^12.12.5",
     "@types/redis": "^2.8.14",
     "chokidar-cli": "^2.1.0",
+    "dotenv": "^8.2.0",
     "husky": "^3.0.9",
     "mongodb-memory-server": "^6.0.1",
     "prettier": "^1.18.2",

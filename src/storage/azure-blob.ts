@@ -37,6 +37,9 @@ export default class AZBlobStorage implements Storage {
   }
 
   async length(id: string) {
+    if (!(await this.containerClient.exists())) {
+      await this.containerClient.create()
+    }
     const blobGetPropertiesResponse = await this.containerClient
       .getBlockBlobClient(id)
       .getProperties({ abortSignal: this.abortSignal })
@@ -44,19 +47,28 @@ export default class AZBlobStorage implements Storage {
   }
 
   async getStream(id: string): Promise<NodeJS.ReadableStream> {
+    if (!(await this.containerClient.exists())) {
+      await this.containerClient.create()
+    }
     const blobDownloadResponse = await this.containerClient
       .getBlockBlobClient(id)
       .download(0, undefined, { abortSignal: this.abortSignal })
     return blobDownloadResponse.readableStreamBody!
   }
 
-  set(id: string, file: Readable) {
+  async set(id: string, file: Readable) {
+    if (!(await this.containerClient.exists())) {
+      await this.containerClient.create()
+    }
     return this.containerClient
       .getBlockBlobClient(id)
       .uploadStream(file, undefined, undefined, { abortSignal: this.abortSignal })
   }
 
-  del(id: string) {
+  async del(id: string) {
+    if (!(await this.containerClient.exists())) {
+      await this.containerClient.create()
+    }
     return this.containerClient
       .getBlockBlobClient(id)
       .delete({ abortSignal: this.abortSignal, deleteSnapshots: 'include' })
